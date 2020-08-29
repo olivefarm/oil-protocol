@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "truffle-plugin-verify": "^0.3.11"
+  }
+}
