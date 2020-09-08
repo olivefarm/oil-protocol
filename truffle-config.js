@@ -80,9 +80,8 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: '0.5.17',
-      docker: process.env.DOCKER_COMPILER !== undefined
-        ? process.env.DOCKER_COMPILER === 'true' : true,
+      version: '0.6.12',
+      docker: false,
       parser: 'solcjs',
       settings: {
         optimizer: {
