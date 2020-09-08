@@ -146,7 +146,7 @@ contract Brewer is Ownable {
     function _draw() internal view returns (uint256) {
         uint256 seed = uint256(keccak256(abi.encodePacked(now, block.difficulty, msg.sender)));
         uint256 rnd = UniformRandomNumber.uniform(seed, totalWineAmount);
-        for(uint i = 1; i < wineInfo.length; ++i){
+        for(uint i = wineInfo.length - 1; i > 0; --i){
             if(rnd < wineInfo[i].amount){
                 return i;
             }
