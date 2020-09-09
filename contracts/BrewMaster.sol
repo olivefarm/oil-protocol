@@ -105,12 +105,12 @@ contract Brewer is Ownable {
         return userWineInfo[tokenOwner][_wineID].amount;
     }
 
-    function userUnclaimWine(address tokenOwner) public view returns (uint256) {
-        uint256 amount = 0;
-        for(uint i = 1; i < wineInfo.length; ++i){
-            amount = amount.add(userWineInfo[tokenOwner][i].amount);
+    function userUnclaimWine(address tokenOwner) public view returns (uint256[] memory) {
+        uint256[] memory userWine = new uint256[](wineInfo.length);
+        for(uint i = 0; i < wineInfo.length; i++) {
+            userWine[i] = userWineInfo[tokenOwner][i].amount;
         }
-        return amount;
+        return userWine;
     }
 
     function wineBalanceOf(uint256 _wineID) public view returns (uint256) {
