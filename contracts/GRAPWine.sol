@@ -1030,6 +1030,6 @@ contract GRAPWine is ERC1155Tradable {
 	}
 
 	function contractURI() public pure returns (string memory) {
-		return "https://api.grap.finance/metadata";
+		return "https://api.grap.finance/contract/crypto-wine-erc1155";
 	}
 }
