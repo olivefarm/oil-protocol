@@ -190,6 +190,33 @@ contract Brewer is Ownable {
         emit AirDrop(airdropList[rnd], _rwid);
     }
 
+    // Airdrop by user
+    function airDropByUser() external {
+
+        // EOA only
+        require(msg.sender == tx.origin);
+
+        require(ticketBalances[msg.sender] >= ticketsConsumed, "Tickets are not enough.");
+        ticketBalances[msg.sender] = ticketBalances[msg.sender].sub(ticketsConsumed);
+        
+        uint256 _rwid = _draw();
+        // Reward reduced
+        _updateWine(_rwid, 1);
+
+        uint256 seed = uint256(keccak256(abi.encodePacked(now, _rwid)));
+        bool status = false;
+        uint256 rnd = 0;
+
+        while (!status) {
+            rnd = UniformRandomNumber.uniform(seed, airdropList.length);
+            status = addressAvailable[airdropList[rnd]];
+            seed = uint256(keccak256(abi.encodePacked(seed, rnd)));
+        }
+
+        _addUserWine(airdropList[rnd], _rwid, 1);
+        emit AirDrop(airdropList[rnd], _rwid);
+    }
+
     function withdrawFee() external onlyOwner {
         msg.sender.transfer(address(this).balance);
     }
