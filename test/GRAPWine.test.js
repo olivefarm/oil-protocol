@@ -48,6 +48,8 @@ contract('GRAPWine', ([alice, bob, carol, minter]) => {
             );
             assert.equal((await this.brewMaster.userWineBalanceOf(bob, 1)).valueOf(), '1');
             assert.equal((await this.brewMaster.wineBalanceOf(1)).valueOf(), '999');
+
+            assert.equal((await this.brewMaster.userUnclaimWine(bob)).valueOf(), '1');
         });
 
         it('should claim wine amount and need pay fee', async () => {
