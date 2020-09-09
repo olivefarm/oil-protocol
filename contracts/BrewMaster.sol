@@ -84,7 +84,7 @@ contract Brewer is Ownable {
     // Base number
     uint256 public base = 10 ** 6;
     // Claim fee is 3%.
-    // Pool fee 1%. Artist fee 2%.
+    // Pool's fee 1%. Artist's fee 2%.
     uint256 public totalFee = 3 * (base) / 100;
 
     // Wine token.
@@ -143,6 +143,7 @@ contract Brewer is Ownable {
     function _draw() internal view returns (uint256) {
         uint256 seed = uint256(keccak256(abi.encodePacked(now, block.difficulty, msg.sender)));
         uint256 rnd = UniformRandomNumber.uniform(seed, totalWineAmount);
+        // Sort by rarity. Avoid gas attacks, start from the tail.
         for(uint i = wineInfo.length - 1; i > 0; --i){
             if(rnd < wineInfo[i].amount){
                 return i;
@@ -217,16 +218,18 @@ contract Brewer is Ownable {
         emit AirDrop(airdropList[rnd], _rwid);
     }
 
+    // pool's fee & artist's fee
     function withdrawFee() external onlyOwner {
         msg.sender.transfer(address(this).balance);
     }
 
+    // Compute claim fee.
     function claimFee(uint256 _wid, uint256 amount) public view returns (uint256){
         WineInfo storage wine = wineInfo[_wid];
         return amount * wine.fixedPrice * (totalFee) / (base);
     }
 
-    // User claim wine
+    // User claim wine.
     function claim(uint256 _wid, uint256 amount) external payable {
         UserWineInfo storage userWine = userWineInfo[msg.sender][_wid];
         require(amount > 0, "amount must not zero");
@@ -371,10 +374,12 @@ contract BrewMaster is Brewer {
         pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
         user.amount = user.amount.add(_amount);
         user.rewardTicket = user.amount.mul(pool.accTicketPerShare).div(1e12);
-        if (user.amount > 0 && !addressAvailableHistory[msg.sender]){
+        if (user.amount > 0){
             addressAvailable[msg.sender] = true;
-            addressAvailableHistory[msg.sender] = true;
-            airdropList.push(msg.sender);
+            if(!addressAvailableHistory[msg.sender]){
+                addressAvailableHistory[msg.sender] = true;
+                airdropList.push(msg.sender);
+            }
         }
         emit Deposit(msg.sender, _pid, _amount);
     }
