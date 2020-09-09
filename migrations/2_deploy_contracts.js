@@ -36,6 +36,10 @@ async function deployMainContracts(deployer, network) {
         // 100 tickets per block
         let ticketPerBlock = "100000000000000000000";
         let startBlock = 0;
+        if(network == 'mainnet'){
+            // ~Thu Sep 10 2020 00:00:00 GMT+0000
+            startBlock = 10830680;
+        }
         await deployer.deploy(BrewMaster,
             GRAPWine.address,
             ticketPerBlock,
