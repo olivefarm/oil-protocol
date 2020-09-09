@@ -41,5 +41,8 @@ async function deployMainContracts(deployer, network) {
             ticketPerBlock,
             startBlock
         );
+        let grapWine = await GRAPWine.deployed();
+        let brewMaster = await BrewMaster.deployed();
+        await grapWine.addMinter(brewMaster.address);
     }
 }
