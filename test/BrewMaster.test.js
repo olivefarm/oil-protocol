@@ -1,5 +1,5 @@
 const { expectRevert, time } = require('@openzeppelin/test-helpers');
-const GRAPWine = artifacts.require('GRAPWine');
+const OLIVOil = artifacts.require('OLIVOil');
 const BrewMaster = artifacts.require('BrewMaster');
 const MockERC20 = artifacts.require('MockERC20');
 

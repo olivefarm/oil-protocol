@@ -1,6 +1,6 @@
 // ============ Contracts ============
-const GRAPWine = artifacts.require("GRAPWine");
-const WineTrader = artifacts.require("WineTrader");
+const OLIVOil = artifacts.require("OLIVOil");
+const OilTrader = artifacts.require("OilTrader");
 
 
 
@@ -23,9 +23,9 @@ module.exports = migration;
 
 async function deployContracts(deployer, network) {
     if(network != 'test'){
-        let grapWine = await GRAPWine.deployed();
-        await deployer.deploy(WineTrader,
-            grapWine.address,
+        let olivOil = await OLIVOil.deployed();
+        await deployer.deploy(OilTrader,
+            olivOil.address,
         );
     }
 }

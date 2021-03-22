@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./IGRAPWine.sol";
+import "./IOLIVOil.sol";
 
 
 /**
@@ -58,27 +58,27 @@ contract Brewer is Ownable {
     mapping(address => bool) addressAvailable;
     mapping(address => bool) addressAvailableHistory;
 
-    // Claimable wine of user.
-    struct UserWineInfo {
+    // Claimable oil of user.
+    struct UserOilInfo {
         uint256 amount;
     }
-    // Info of each user that claimable wine.
-    mapping (address => mapping (uint256 => UserWineInfo)) public userWineInfo;
+    // Info of each user that claimable oil.
+    mapping (address => mapping (uint256 => UserOilInfo)) public userOilInfo;
 
     // Ticket of users
     mapping(address => uint256) ticketBalances;
-    // Info of each wine.
-    struct WineInfo {
-        uint256 wineID;            // Wine's ID. 
+    // Info of each oil.
+    struct OilInfo {
+        uint256 oilID;            // Oil's ID. 
         uint256 amount;            // Distribution amount.
-        uint256 fixedPrice;        // Claim the wine need pay some wETH.
+        uint256 fixedPrice;        // Claim the oil need pay some wETH.
     }
-    // Info of each wine.
-    WineInfo[] public wineInfo;
-    // Total wine amount.
-    uint256 public totalWineAmount = 0;
-    // Original total wine amount.
-    uint256 public originalTotalWineAmount = 0;
+    // Info of each oil.
+    OilInfo[] public oilInfo;
+    // Total oil amount.
+    uint256 public totalOilAmount = 0;
+    // Original total oil amount.
+    uint256 public originalTotalOilAmount = 0;
     // Draw consumption
     uint256 public ticketsConsumed = 1000 * (10 ** 18);
     // Base number
@@ -87,82 +87,82 @@ contract Brewer is Ownable {
     // Pool's fee 1%. Artist's fee 2%.
     uint256 public totalFee = 3 * (base) / 100;
 
-    // Wine token.
-    IGRAPWine GRAPWine;
+    // Oil token.
+    IOLIVOil OLIVOil;
 
-    event Reward(address indexed user, uint256 indexed wineID);
-    event AirDrop(address indexed user, uint256 indexed wineID);
+    event Reward(address indexed user, uint256 indexed oilID);
+    event AirDrop(address indexed user, uint256 indexed oilID);
 
-    function wineLength() public view returns (uint256) {
-        return wineInfo.length;
+    function oilLength() public view returns (uint256) {
+        return oilInfo.length;
     }
 
     function ticketBalanceOf(address tokenOwner) public view returns (uint256) {
         return ticketBalances[tokenOwner];
     }
 
-    function userWineBalanceOf(address tokenOwner, uint256 _wineID) public view returns (uint256) {
-        return userWineInfo[tokenOwner][_wineID].amount;
+    function userOilBalanceOf(address tokenOwner, uint256 _oilID) public view returns (uint256) {
+        return userOilInfo[tokenOwner][_oilID].amount;
     }
 
-    function userUnclaimWine(address tokenOwner) public view returns (uint256[] memory) {
-        uint256[] memory userWine = new uint256[](wineInfo.length);
-        for(uint i = 0; i < wineInfo.length; i++) {
-            userWine[i] = userWineInfo[tokenOwner][i].amount;
+    function userUnclaimOil(address tokenOwner) public view returns (uint256[] memory) {
+        uint256[] memory userOil = new uint256[](oilInfo.length);
+        for(uint i = 0; i < oilInfo.length; i++) {
+            userOil[i] = userOilInfo[tokenOwner][i].amount;
         }
-        return userWine;
+        return userOil;
     }
 
-    function wineBalanceOf(uint256 _wineID) public view returns (uint256) {
-        return wineInfo[_wineID].amount;
+    function oilBalanceOf(uint256 _oilID) public view returns (uint256) {
+        return oilInfo[_oilID].amount;
     }
 
-    // Add a new wine. Can only be called by the owner.
-    function addWine(uint256 _wineID, uint256 _amount, uint256 _fixedPrice) external onlyOwner {
-        require(_amount.add(GRAPWine.totalSupply(_wineID)) <= GRAPWine.maxSupply(_wineID), "Max supply reached");
-        totalWineAmount = totalWineAmount.add(_amount);
-        originalTotalWineAmount = originalTotalWineAmount.add(_amount);
-        wineInfo.push(WineInfo({
-            wineID: _wineID,
+    // Add a new oil. Can only be called by the owner.
+    function addOil(uint256 _oilID, uint256 _amount, uint256 _fixedPrice) external onlyOwner {
+        require(_amount.add(OLIVOil.totalSupply(_oilID)) <= OLIVOil.maxSupply(_oilID), "Max supply reached");
+        totalOilAmount = totalOilAmount.add(_amount);
+        originalTotalOilAmount = originalTotalOilAmount.add(_amount);
+        oilInfo.push(OilInfo({
+            oilID: _oilID,
             amount: _amount,
             fixedPrice: _fixedPrice
         }));
     }
 
-    // Update wine.
+    // Update oil.
     // It's always decrease.
-    function _updateWine(uint256 _wid, uint256 amount) internal {
-        WineInfo storage wine = wineInfo[_wid];
-        wine.amount = wine.amount.sub(amount);
-        totalWineAmount = totalWineAmount.sub(amount);
+    function _updateOil(uint256 _wid, uint256 amount) internal {
+        OilInfo storage oil = oilInfo[_wid];
+        oil.amount = oil.amount.sub(amount);
+        totalOilAmount = totalOilAmount.sub(amount);
     }
 
-    // Update user wine
-    function _addUserWine(address user, uint256 _wid, uint256 amount) internal {
-        UserWineInfo storage userWine = userWineInfo[user][_wid];
-        userWine.amount = userWine.amount.add(amount);
+    // Update user oil
+    function _addUserOil(address user, uint256 _wid, uint256 amount) internal {
+        UserOilInfo storage userOil = userOilInfo[user][_wid];
+        userOil.amount = userOil.amount.add(amount);
     }
-    function _removeUserWine(address user, uint256 _wid, uint256 amount) internal {
-        UserWineInfo storage userWine = userWineInfo[user][_wid];
-        userWine.amount = userWine.amount.sub(amount);
+    function _removeUserOil(address user, uint256 _wid, uint256 amount) internal {
+        UserOilInfo storage userOil = userOilInfo[user][_wid];
+        userOil.amount = userOil.amount.sub(amount);
     }
 
     // Draw main function
     function _draw() internal view returns (uint256) {
         uint256 seed = uint256(keccak256(abi.encodePacked(now, block.difficulty, msg.sender)));
-        uint256 rnd = UniformRandomNumber.uniform(seed, totalWineAmount);
+        uint256 rnd = UniformRandomNumber.uniform(seed, totalOilAmount);
         // Sort by rarity. Avoid gas attacks, start from the tail.
-        for(uint i = wineInfo.length - 1; i > 0; --i){
-            if(rnd < wineInfo[i].amount){
+        for(uint i = oilInfo.length - 1; i > 0; --i){
+            if(rnd < oilInfo[i].amount){
                 return i;
             }
-            rnd = rnd - wineInfo[i].amount;
+            rnd = rnd - oilInfo[i].amount;
         }
         // should not happen.
         return uint256(-1);
     }
 
-    // Draw a wine
+    // Draw a oil
     function draw() external {
         // EOA only
         require(msg.sender == tx.origin);
@@ -172,8 +172,8 @@ contract Brewer is Ownable {
 
         uint256 _rwid = _draw();
         // Reward reduced
-        _updateWine(_rwid, 1);
-        _addUserWine(msg.sender, _rwid, 1);
+        _updateOil(_rwid, 1);
+        _addUserOil(msg.sender, _rwid, 1);
 
         emit Reward(msg.sender, _rwid);
     }
@@ -183,7 +183,7 @@ contract Brewer is Ownable {
 
         uint256 _rwid = _draw();
         // Reward reduced
-        _updateWine(_rwid, 1);
+        _updateOil(_rwid, 1);
 
         uint256 seed = uint256(keccak256(abi.encodePacked(now, _rwid)));
         bool status = false;
@@ -195,7 +195,7 @@ contract Brewer is Ownable {
             seed = uint256(keccak256(abi.encodePacked(seed, rnd)));
         }
 
-        _addUserWine(airdropList[rnd], _rwid, 1);
+        _addUserOil(airdropList[rnd], _rwid, 1);
         emit AirDrop(airdropList[rnd], _rwid);
     }
 
@@ -210,7 +210,7 @@ contract Brewer is Ownable {
         
         uint256 _rwid = _draw();
         // Reward reduced
-        _updateWine(_rwid, 1);
+        _updateOil(_rwid, 1);
 
         uint256 seed = uint256(keccak256(abi.encodePacked(now, _rwid)));
         bool status = false;
@@ -222,7 +222,7 @@ contract Brewer is Ownable {
             seed = uint256(keccak256(abi.encodePacked(seed, rnd)));
         }
 
-        _addUserWine(airdropList[rnd], _rwid, 1);
+        _addUserOil(airdropList[rnd], _rwid, 1);
         emit AirDrop(airdropList[rnd], _rwid);
     }
 
@@ -233,19 +233,19 @@ contract Brewer is Ownable {
 
     // Compute claim fee.
     function claimFee(uint256 _wid, uint256 amount) public view returns (uint256){
-        WineInfo storage wine = wineInfo[_wid];
-        return amount * wine.fixedPrice * (totalFee) / (base);
+        OilInfo storage oil = oilInfo[_wid];
+        return amount * oil.fixedPrice * (totalFee) / (base);
     }
 
-    // User claim wine.
+    // User claim oil.
     function claim(uint256 _wid, uint256 amount) external payable {
-        UserWineInfo storage userWine = userWineInfo[msg.sender][_wid];
+        UserOilInfo storage userOil = userOilInfo[msg.sender][_wid];
         require(amount > 0, "amount must not zero");
-        require(userWine.amount >= amount, "amount is bad");
+        require(userOil.amount >= amount, "amount is bad");
         require(msg.value == claimFee(_wid, amount), "need payout claim fee");
 
-        _removeUserWine(msg.sender, _wid, amount);
-        GRAPWine.mint(msg.sender, _wid, amount, "");
+        _removeUserOil(msg.sender, _wid, amount);
+        OLIVOil.mint(msg.sender, _wid, amount, "");
     }
 }
 
@@ -280,15 +280,15 @@ contract BrewMaster is Brewer {
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
     constructor(
-        IGRAPWine _GRAPWine,
+        IOLIVOil _OLIVOil,
         uint256 _ticketPerBlock,
         uint256 _startBlock
     ) public {
-        GRAPWine = _GRAPWine;
+        OLIVOil = _OLIVOil;
         ticketPerBlock = _ticketPerBlock;
         startBlock = _startBlock;
-        wineInfo.push(WineInfo({
-            wineID: 0,
+        oilInfo.push(OilInfo({
+            oilID: 0,
             amount: 0,
             fixedPrice: 0
         }));

@@ -1,6 +1,6 @@
 // ============ Contracts ============
 const BrewMaster = artifacts.require("BrewMaster");
-const GRAPWine = artifacts.require("GRAPWine");
+const OLIVOil = artifacts.require("OLIVOil");
 
 
 
@@ -25,28 +25,28 @@ async function deployMainContracts(deployer, network) {
     if(network != 'test'){
         // OpenSea proxy registry addresses for rinkeby and mainnet.
         let proxyRegistryAddress = "";
-        if (network === 'rinkeby') {
+        if (network === 'ropsten') {
             proxyRegistryAddress = "0xf57b2c51ded3a29e6891aba85459d600256cf317";
         } else {
             proxyRegistryAddress = "0xa5409ec958c83c3f309868babaca7c86dcb077c1";
         }
-        await deployer.deploy(GRAPWine,
+        await deployer.deploy(OLIVOil,
             proxyRegistryAddress
         );
         // 100 tickets per block
         let ticketPerBlock = "100000000000000000000";
         let startBlock = 0;
-        if(network == 'mainnet'){
+        if(network == 'ropsten'){
             // ~Thu Sep 10 2020 00:00:00 GMT+0000
             startBlock = 10830680;
         }
         await deployer.deploy(BrewMaster,
-            GRAPWine.address,
+            OLIVOil.address,
             ticketPerBlock,
             startBlock
         );
-        let grapWine = await GRAPWine.deployed();
+        let olivOil = await OLIVOil.deployed();
         let brewMaster = await BrewMaster.deployed();
-        await grapWine.addMinter(brewMaster.address);
+        await olivOil.addMinter(brewMaster.address);
     }
 }

@@ -2,28 +2,28 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./IGRAPWine.sol";
+import "./IOLIVOil.sol";
 
 /**
- * @title WineTrade
+ * @title OilTrade
  */
 
-contract WineTrader {
+contract OilTrader {
     using SafeMath for uint256;
-    // Wine token.
-    IGRAPWine GRAPWine;
+    // Oil token.
+    IOLIVOil OLIVOil;
     address payable public dev;
 
     // Info of each order.
-    struct WineOrderInfo {
+    struct OilOrderInfo {
         address payable owner; // owner
         uint256 price; // price 
-        uint256 wineID; // wineID
+        uint256 oilID; // oilID
         bool isOpen; // open order
     }
 
     // Info of each order list.
-    WineOrderInfo[] public orderList;
+    OilOrderInfo[] public orderList;
 
     uint256 private _currentOrderID = 0;
 
@@ -32,14 +32,14 @@ contract WineTrader {
     event Buy(uint256 indexed orderID, address indexed user, uint256 indexed wid);
 
     constructor(
-        IGRAPWine _GRAPWine
+        IOLIVOil _OLIVOil
     ) public {
-        GRAPWine = _GRAPWine;
+        OLIVOil = _OLIVOil;
         dev = msg.sender;
-        orderList.push(WineOrderInfo({
+        orderList.push(OilOrderInfo({
             owner: address(0),
             price: 0,
-            wineID: 0,
+            oilID: 0,
             isOpen: false
         }));
     }
@@ -49,40 +49,40 @@ contract WineTrader {
         dev.transfer(address(this).balance);
     }
 
-    function orderWine(uint256 _wineID, uint256 _price) external {
+    function orderOil(uint256 _oilID, uint256 _price) external {
         // transferFrom
-        GRAPWine.safeTransferFrom(msg.sender, address(this), _wineID, 1, "");
+        OLIVOil.safeTransferFrom(msg.sender, address(this), _oilID, 1, "");
 
-        orderList.push(WineOrderInfo({
+        orderList.push(OilOrderInfo({
             owner: msg.sender,
             price: _price,
-            wineID: _wineID,
+            oilID: _oilID,
             isOpen: true
         }));
 
         uint256 _id = _getNextOrderID();
         _incrementOrderId();
 
-        emit Order(_id, msg.sender, _wineID, _price);
+        emit Order(_id, msg.sender, _oilID, _price);
 
     }
 
     function cancel(uint256 orderID) external {
-        WineOrderInfo storage orderInfo = orderList[orderID];
+        OilOrderInfo storage orderInfo = orderList[orderID];
         require(orderInfo.owner == msg.sender, "not your order");
         require(orderInfo.isOpen == true, "only open order can be cancel");
 
         orderInfo.isOpen = false;
 
         // transferFrom
-        GRAPWine.safeTransferFrom(address(this), msg.sender, orderInfo.wineID, 1, "");
+        OLIVOil.safeTransferFrom(address(this), msg.sender, orderInfo.oilID, 1, "");
 
-        emit Cancel(orderID, msg.sender, orderInfo.wineID);
+        emit Cancel(orderID, msg.sender, orderInfo.oilID);
 
     }
 
-    function buyWine(uint256 orderID) external payable {
-        WineOrderInfo storage orderInfo = orderList[orderID];
+    function buyOil(uint256 orderID) external payable {
+        OilOrderInfo storage orderInfo = orderList[orderID];
         require(orderInfo.owner != address(0),"bad address");
         require(orderInfo.owner != msg.sender, "it is your order");
         require(orderInfo.isOpen == true, "only open order can buy");
@@ -93,9 +93,9 @@ contract WineTrader {
         orderInfo.isOpen = false;
 
         // transferFrom
-        GRAPWine.safeTransferFrom(address(this), msg.sender, orderInfo.wineID, 1, "");
+        OLIVOil.safeTransferFrom(address(this), msg.sender, orderInfo.oilID, 1, "");
         orderInfo.owner.transfer(sellerValue);
-        emit Buy(orderID, msg.sender, orderInfo.wineID);
+        emit Buy(orderID, msg.sender, orderInfo.oilID);
     }
 
 	function _getNextOrderID() private view returns (uint256) {

@@ -1021,15 +1021,15 @@ contract ERC1155Tradable is ERC1155, ERC1155MintBurn, ERC1155Metadata, Ownable, 
 }
 
 /**
- * @title GRAPWine
- * GRAPWine - let's winemaking
+ * @title OLIVOil
+ * OLIVOil - let's oilmaking
  */
-contract GRAPWine is ERC1155Tradable {
-	constructor(address _proxyRegistryAddress) public ERC1155Tradable("GRAP Wine.", "GRAPWine", _proxyRegistryAddress) {
-		_setBaseMetadataURI("https://api.grap.finance/wines/");
+contract OLIVOil is ERC1155Tradable {
+	constructor(address _proxyRegistryAddress) public ERC1155Tradable("OLIV Oil.", "OLIVOil", _proxyRegistryAddress) {
+		_setBaseMetadataURI("https://api.oliv.finance/oils/");
 	}
 
 	function contractURI() public pure returns (string memory) {
-		return "https://api.grap.finance/contract/crypto-wine-erc1155";
+		return "https://api.oliv.finance/contract/crypto-oil-erc1155";
 	}
 }
